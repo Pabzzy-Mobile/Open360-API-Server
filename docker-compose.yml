@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  api-server:
+    build: .
+    container_name: open-360-api-sock
+    hostname: open-360-api-sock
+    restart: on-failure
+    links:
+      - api-redis
+    environment:
+      - API_PORT=4000
+    #DEBUG VARIABLES
+    #  - "9229:9229"
+    #command:
+    #  - node
+    #  - "--inspect-brk=0.0.0.0"
+    #  - "main.js"
+    networks:
+      api-redis-sock:
+      api-network:
+
+  api-redis:
+    image: redis
+    container_name: open360-redis-sock
+    hostname: open360-redis-sock
+    volumes:
+      - "/usr/src/open360/api_data:/data"
+      - "/usr/src/open360/redis.conf:/usr/local/etc/redis/redis.conf"
+    networks:
+      api-redis-sock:
+
+networks:
+  api-redis-sock:
+  api-network:
+    external: true
+    name: "open360-api-network"
