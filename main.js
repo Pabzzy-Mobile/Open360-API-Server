@@ -66,11 +66,11 @@ io.on('connection', (socket) => {
     socket.on("api-message", (data) => {
         switch (data.type) {
             case "question":
-                log(socket, "Message relayed:" + JSON.stringify(data), "info");
+                log(socket, "Message relayed:" + JSON.stringify(data.package.message), "info");
                 socket.broadcast.emit(data.target, data);
                 break;
             case "message":
-                log(socket, "Message relayed:" + JSON.stringify(data), "info");
+                log(socket, "Message relayed:" + JSON.stringify(data.package.message), "info");
                 socket.broadcast.emit(data.target, data);
                 break;
         }
