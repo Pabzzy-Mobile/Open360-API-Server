@@ -12,7 +12,7 @@ RedisClient.on("error", function(error) {
 });
 
 // Require our core modules
-const {Util} = require("./core/");
+const Util = require("open360-util");
 
 // Tell the server what port it should use. 4000 is for testing purposes
 const PORT = parseInt(process.env.API_PORT) || 4000;
@@ -44,7 +44,7 @@ io.use((socket, next) => {
         RedisClient.set(socket.id + "colour", false);
     } else {
         RedisClient.set(socket.id + "name", name);
-        RedisClient.set(socket.id + "colour", Util.randomColour());
+        RedisClient.set(socket.id + "colour", Util.random.randomColour());
     }
 
     next();
@@ -65,13 +65,21 @@ io.on('connection', (socket) => {
 
     socket.on("api-message", (data) => {
         switch (data.type) {
+            case "message":
+            case Util.api.APIMessageType.message:
             case "question":
+            case Util.api.APIMessageType.question:
                 log(socket, "Message relayed:" + JSON.stringify(data.package.message), "info");
                 socket.broadcast.emit(data.target, data);
                 break;
-            case "message":
-                log(socket, "Message relayed:" + JSON.stringify(data.package.message), "info");
-                socket.broadcast.emit(data.target, data);
+            default:
+                try {
+                    log(socket, "Unknown message recieved:" + JSON.stringify(data.package.message), "warn");
+                    socket.broadcast.emit(data.target, data)
+                }
+                catch (err) {
+                    log(socket, "Unknown message recieved:" + JSON.stringify(data), "warn");
+                }
                 break;
         }
     });
@@ -108,21 +116,33 @@ function log(socket, message, type){
                 "border-radius: 2px"
             ].join(';');
             //
-            let time = Date.now().toLocaleString("en-UK");
+            let time = new Date();
+            let dateOptions = {
+                year: "2-digit",
+                month:"2-digit",
+                day:"2-digit"
+            }
+            let timeOptions = {
+                hour12 : false,
+                hour:  "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }
+            let dateString = time.toLocaleDateString("en-UK", dateOptions) + "][" + time.toLocaleTimeString("en-UK", timeOptions);
             // Log the message according to the type
             switch (type){
                 case "error":
-                    console.error(`[${time}][%c${data[0]}][ERROR]`, style, message);
+                    console.error(`[${dateString}][%c${data[0]}][ERROR]`, style, message);
                     break;
                 case "info":
-                    console.info(`[${time}][%c${data[0]}][INFO]`, style, message);
+                    console.info(`[${dateString}][%c${data[0]}][INFO]`, style, message);
                     break;
                 case "warn":
-                    console.warn(`[${time}][%c${data[0]}][WARN]`, style, message);
+                    console.warn(`[${dateString}][%c${data[0]}][WARN]`, style, message);
                     break;
                 default:
                     // If no type was passed log normally
-                    console.log(`[${time}][%c${data[0]}]`, style, message);
+                    console.log(`[${dateString}][%c${data[0]}]`, style, message);
             }
         });
 }

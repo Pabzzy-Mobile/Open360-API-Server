@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Pabzzy-Mobile/Open360-API-Server#readme",
   "dependencies": {
+    "open360-util": "^0.1.2",
     "redis": "^3.0.2",
     "socket.io": "^3.0.1"
   }
